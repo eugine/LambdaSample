@@ -1,40 +1,68 @@
 package com.sysiq.java8.lambda;
 
+import junit.framework.Assert;
 import org.junit.Test;
+
+import java.util.Comparator;
+import java.util.function.Predicate;
 
 public class LambdaTest {
 
     @Test
-    public void test () {
-        LambdaInterface0 i0 = () -> System.out.println("interface");
-
-        Runnable r1 = () -> System.out.println("running");
-        Runnable r2 = new Runnable() {
+    public void testLegacy () {
+        Runnable r = new Runnable() {
             @Override
             public void run() {
-                System.out.println("Anonymous classes: running");
+                System.out.println("runnable legacy");
             }
         };
 
-
-        LambdaInterface0 i0_long = new LambdaInterface0() {
+        Comparator<Integer> cmp =  new Comparator<Integer>() {
             @Override
-            public void apply() {
-                System.out.println("interface long");
+            public int compare(Integer x, Integer y) {
+                return (x > y) ? 1 : (x < y) ? -1 : 0;
             }
         };
-        i0_long.apply();
-        i0_long = i0;
-        i0_long.apply();
 
-        LambdaInterface1 li1 = (x) -> Integer.toString(x);
+        r.run();
+        Assert.assertEquals(1,  cmp.compare(100, 10));
+        Assert.assertEquals(0,  cmp.compare(200, 200));
+        Assert.assertEquals(-1, cmp.compare(100, 101));
+    }
 
-        LambdaInterface2 li2 = (x, y) -> Integer.compare(x, y);
+    @Test
+    public void testLambda() {
+        // Runnable - void run()
+        Runnable r = () -> System.out.println("runnable lambda");
 
-        System.out.println(li2.apply(10, 11));
+        // Comparator<T> - int compare(T x, T y)
+        Comparator<Integer> cmp =  (Integer x, Integer y) -> (x > y) ? 1 : (x < y) ? -1 : 0;
 
-        LambdaInterface2 li2_1 = Integer::compare;
+        r.run();
+        Assert.assertEquals(1,  cmp.compare(100, 10));
+        Assert.assertEquals(0,  cmp.compare(200, 200));
+        Assert.assertEquals(-1, cmp.compare(100, 101));
+    }
 
+    public interface NotFunctionalInterface<T> {
+        public T action(T t);
+//        public void action2();
+    }
+
+    @Test
+    public void testNotFunctionalInterface() {
+        // NotFunctionalInterface<T> - T action(T t)
+        NotFunctionalInterface<String> nfi = s -> s;
+    }
+
+    @Test
+    public void testPredicate() {
+        // Predicate<T> - boolean test(T t)
+        Predicate<String> isTrue = "true"::equalsIgnoreCase;
+
+        Assert.assertTrue(isTrue.test("TruE"));
+        Assert.assertTrue(isTrue.test("TRUE"));
+        Assert.assertFalse(isTrue.test("False"));
     }
 
 }
