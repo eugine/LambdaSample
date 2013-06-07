@@ -1,5 +1,6 @@
 package com.sysiq.java8.streams;
 
+import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class StreamTest {
         int sum = IntStream.range(0, 5)
                 .reduce((x, y) -> x + y)
                 .getAsInt();
-        System.out.println("Sum: " + sum);
+       Assert.assertEquals(10, sum);
 
         // x^2
         System.out.println("==== x^2: ");
@@ -59,7 +60,7 @@ public class StreamTest {
                 .forEach(System.out::println);
 
         //distinct
-        System.out.println("==== Distinct: ");
+        System.out.println("==== Distinct, Limit, ForEach: ");
         Arrays.asList(1, 2, 1, 2, 3, 0, 1, 2, 1)
                 .stream()
                 .distinct()

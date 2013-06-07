@@ -5,11 +5,9 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Comparators;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class LambdaTest {
 
@@ -42,6 +40,7 @@ public class LambdaTest {
 
         // Comparator<T> - int compare(T x, T y)
         Comparator<Integer> cmp =  (Integer x, Integer y) -> (x > y) ? 1 : (x < y) ? -1 : 0;
+        Comparator<Integer> cmp2 =  (x, y) -> (x > y) ? 1 : (x < y) ? -1 : 0;
 
         r.run();
         Assert.assertEquals(1,  cmp.compare(100, 10));
@@ -49,6 +48,7 @@ public class LambdaTest {
         Assert.assertEquals(-1, cmp.compare(100, 101));
     }
 
+    @FunctionalInterface
     public interface NotFunctionalInterface<T> {
         public T action(T t);
 //        public void action2();
@@ -78,11 +78,17 @@ public class LambdaTest {
         };
         Comparator<Integer> cmp_lambda = (x, y) -> Integer.compare(x, y);
 
-        Comparator<Integer> cmp = Integer::compare;
+        // Integer: int compare(int x, int y)
+        // Comparator<T> - T compare(T x, T y)
+        Comparator<Integer> cmp_ref = Integer::compare;
 
-        Assert.assertEquals(1,  cmp.compare(100, 10));
-        Assert.assertEquals(0,  cmp.compare(200, 200));
-        Assert.assertEquals(-1, cmp.compare(100, 101));
+        Assert.assertEquals(1, cmp_ref.compare(100, 10));
+        Assert.assertEquals(0, cmp_ref.compare(200, 200));
+        Assert.assertEquals(-1, cmp_ref.compare(100, 101));
+
+        Comparator<Integer> cmp2 =  (x, y) -> {
+            return (x > y) ? 1 : (x < y) ? -1 : 0;
+        };
 
     }
 
@@ -92,13 +98,13 @@ public class LambdaTest {
 
     @Test
     public void testStaticMethodRef2() {
+        // Consumer<T> - void accept(T t)
         Consumer<Integer> echoInt_extended = new Consumer<Integer>() {
             @Override
             public void accept(Integer i) {
                 LambdaTest.echoInteger(i);
             }
         };
-        // Consumer<T> - accept(T t)
         Consumer<Integer> echoInt = LambdaTest::echoInteger;
 
         List<Integer> list = Arrays.asList(4, 5, 6, 1, 2, 3);
@@ -114,6 +120,7 @@ public class LambdaTest {
         Predicate<String> isTrue = "true"::equalsIgnoreCase;
 
         //Consumer<T> - void apply(T t)
+        //String - void println(T t)
         Consumer<String> print = System.out::println;
 
         Assert.assertTrue(isTrue.test("TruE"));
@@ -121,7 +128,7 @@ public class LambdaTest {
         Assert.assertFalse(isTrue.test("False"));
 
         Arrays.asList("Foo", "Bar", "Baz")
-                .forEach(print);
+                .forEach((String x) -> {String s = x + ""; System.out.println(s); });
     }
 
     public class Lambda {
@@ -150,5 +157,40 @@ public class LambdaTest {
         Assert.assertEquals("lambda2", lambda2.apply("lambda2").getLambda());
         Assert.assertEquals(123, f1.apply("123").intValue());
     }
+
+
+    public class M {
+
+        private String first;
+        private String last;
+
+        public M(String last, String first) {
+            this.last = last;
+            this.first = first;
+        }
+
+        public String getFirst() {
+            return first;
+        }
+
+        public String getLast() {
+            return last;
+        }
+    }
+
+    @Test
+    public void testComparing() {
+        Comparator<M> cmp =
+                Comparators
+//                        .comparing(M::getLast)
+                        .comparing((Function<M,String>)M::getLast)
+                        .thenComparing(M::getFirst);
+
+        BiFunction<String, String, M> builder = M::new;
+
+        Assert.assertEquals(-1, cmp.compare(builder.apply("Sokolov", "Eugene"),
+                                            builder.apply("Sokolov", "Evgeniy")));
+    }
+
 
 }
